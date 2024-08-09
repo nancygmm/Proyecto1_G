@@ -78,8 +78,8 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
 }
 
 fn main() {
-    let window_width = 1300;
-    let window_height = 900;
+    let window_width = 1100;
+    let window_height = 700;
     let framebuffer_width = 1300;
     let framebuffer_height = 900;
     let frame_delay = Duration::from_millis(16);
@@ -87,7 +87,7 @@ fn main() {
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
 
     let mut window = Window::new(
-        "Maze Runner",
+        "Proyecto 1",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -101,14 +101,19 @@ fn main() {
     };
 
     let mut render_mode = RenderMode::Mode2D;
+    let mut last_m_key_state = false;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        if window.is_key_down(Key::M) {
+        let m_key_state = window.is_key_down(Key::M);
+
+        // Toggle render mode if M is pressed
+        if m_key_state && !last_m_key_state {
             render_mode = match render_mode {
                 RenderMode::Mode2D => RenderMode::Mode3D,
                 RenderMode::Mode3D => RenderMode::Mode2D,
             };
         }
+        last_m_key_state = m_key_state;
 
         framebuffer.clear();
         
