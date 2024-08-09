@@ -80,8 +80,8 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
 }
 
 fn main() {
-    let window_width = 1300;
-    let window_height = 900;
+    let window_width = 1100;
+    let window_height = 700;
     let framebuffer_width = 1300;
     let framebuffer_height = 900;
     let frame_delay = Duration::from_millis(16);
