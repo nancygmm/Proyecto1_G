@@ -1,4 +1,3 @@
-
 mod framebuffer;
 mod maze;
 mod player;
@@ -12,6 +11,11 @@ use crate::framebuffer::Framebuffer;
 use crate::maze::load_maze;
 use crate::player::{Player};
 use crate::caster::{cast_ray};
+
+enum RenderMode {
+    Mode2D,
+    Mode3D,
+}
 
 fn draw_cell(framebuffer: &mut Framebuffer, xo: usize, yo: usize, block_size: usize, cell: char) {
     if cell == ' ' {
@@ -27,23 +31,50 @@ fn draw_cell(framebuffer: &mut Framebuffer, xo: usize, yo: usize, block_size: us
     }
 }
 
-fn render(framebuffer: &mut Framebuffer, player: &Player) {
+fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
     let maze = load_maze("./maze.txt");
     let block_size = 100;
 
-    // draws maze
+    // Draws maze
     for row in 0..maze.len() {
         for col in 0..maze[row].len() {
-            draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col])
+            draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col]);
         }
     }
 
-    // draw player
+    // Draw player
     framebuffer.set_current_color(0xFFDDD);
     framebuffer.point(player.pos.x as usize, player.pos.y as usize);
 
-    // cast ray
-    cast_ray(framebuffer, &maze, &player, player.a, block_size);
+    // Cast ray (if needed for 2D view)
+    cast_ray(&maze, &player, player.a, block_size, 1000.0);
+}
+
+fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
+    let maze = load_maze("./maze.txt");
+    let block_size = 100;
+
+    // Set the player's field of view and other raycasting parameters
+    let fov = PI / 3.0; // 60 degrees
+    let num_rays = framebuffer.width;
+    let max_depth = 1000.0;
+
+    for ray_index in 0..num_rays {
+        let ray_angle = player.a - (fov / 2.0) + (ray_index as f32 / num_rays as f32) * fov;
+
+        if let Some((distance, _hit_x, _hit_y)) = cast_ray(&maze, &player, ray_angle, block_size, max_depth) {
+            let distance = distance * (PI / 3.0).cos(); // Correcting fish-eye effect
+            let wall_height = (framebuffer.height as f32 / distance) as usize;
+            let wall_start = framebuffer.height / 2 - wall_height / 2;
+            let wall_end = wall_start + wall_height;
+
+            framebuffer.set_current_color(0xFFDDDD);
+
+            for y in wall_start..wall_end {
+                framebuffer.point(ray_index, y);
+            }
+        }
+    }
 }
 
 fn main() {
@@ -69,11 +100,22 @@ fn main() {
         a: PI / 3.0,
     };
 
+    let mut render_mode = RenderMode::Mode2D;
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        if window.is_key_down(Key::M) {
+            render_mode = match render_mode {
+                RenderMode::Mode2D => RenderMode::Mode3D,
+                RenderMode::Mode3D => RenderMode::Mode2D,
+            };
+        }
 
         framebuffer.clear();
         
-        render(&mut framebuffer, &player);
+        match render_mode {
+            RenderMode::Mode2D => render_2d(&mut framebuffer, &player),
+            RenderMode::Mode3D => render_3d(&mut framebuffer, &player),
+        }
 
         window
             .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
@@ -81,4 +123,4 @@ fn main() {
 
         std::thread::sleep(frame_delay);
     }
-}   
+}

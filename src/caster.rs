@@ -1,28 +1,32 @@
-
-use crate::framebuffer::Framebuffer;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use crate::player::Player;
 
-pub fn cast_ray(framebuffer: &mut Framebuffer, maze: &Vec<Vec<char>>, player: &Player, a: f32, block_size: usize) {
-    let mut d = 0.0;
+pub fn load_maze(filename: &str) -> Vec<Vec<char>> {
+    let file = File::open(filename).unwrap();
 
-    framebuffer.set_current_color(0xFFDDDD);
+    let reader = BufReader::new(file);
 
-    loop {
-        let cos = d * a.cos();
-        let sin = d * a.sin();
+    reader
+        .lines()
+        .map(|line| line.unwrap().chars().collect())
+        .collect()
+}
 
-        let x = (player.pos.x + cos) as usize;
-        let y = (player.pos.y + sin) as usize;
+pub fn cast_ray(maze: &Vec<Vec<char>>, player: &Player, angle: f32, block_size: usize, max_depth: f32) -> Option<(f32, f32, f32)> {
+    let mut distance = 0.0;
+    let step_size = 0.1;
+    
+    while distance < max_depth {
+        let test_x = player.pos.x + distance * angle.cos();
+        let test_y = player.pos.y + distance * angle.sin();
 
-        let i = x / block_size;
-        let j = y / block_size;
-
-        if maze[j][i] != ' ' {
-            return;
+        if maze[test_y as usize / block_size][test_x as usize / block_size] != ' ' {
+            return Some((distance, test_x, test_y));
         }
 
-        framebuffer.point(x, y);
-
-        d += 10.0;
+        distance += step_size;
     }
+
+    None
 }
