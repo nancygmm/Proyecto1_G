@@ -50,9 +50,6 @@ fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
             framebuffer.point(x, y);
         }
     }
-
-    // Cast ray (if needed for 2D view)
-    cast_ray(&maze, &player, player.a, block_size, 1000.0);
 }
 
 fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {

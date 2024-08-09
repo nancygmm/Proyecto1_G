@@ -30,6 +30,10 @@ impl Player {
         let maze_x = (x / block_size as f32) as usize;
         let maze_y = (y / block_size as f32) as usize;
 
+        if maze_y >= maze.len() || maze_x >= maze[0].len() {
+            return true;
+        }
+
         maze[maze_y][maze_x] != ' '
     }
 
