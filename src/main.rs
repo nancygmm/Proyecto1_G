@@ -3,14 +3,14 @@ mod maze;
 mod player;
 mod caster;
 
-use minifb::{ Window, WindowOptions, Key };
-use nalgebra_glm::{Vec2};
+use minifb::{Window, WindowOptions, Key};
+use nalgebra_glm::Vec2;
 use std::f32::consts::PI;
 use std::time::Duration;
 use crate::framebuffer::Framebuffer;
 use crate::maze::load_maze;
-use crate::player::{Player};
-use crate::caster::{cast_ray};
+use crate::player::Player;
+use crate::caster::cast_ray;
 
 enum RenderMode {
     Mode2D,
@@ -44,7 +44,12 @@ fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
 
     // Draw player
     framebuffer.set_current_color(0xFFDDD);
-    framebuffer.point(player.pos.x as usize, player.pos.y as usize);
+    let player_size = 5;
+    for x in player.pos.x as usize - player_size..=player.pos.x as usize + player_size {
+        for y in player.pos.y as usize - player_size..=player.pos.y as usize + player_size {
+            framebuffer.point(x, y);
+        }
+    }
 
     // Cast ray (if needed for 2D view)
     cast_ray(&maze, &player, player.a, block_size, 1000.0);
@@ -64,7 +69,7 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
 
         if let Some((distance, _hit_x, _hit_y)) = cast_ray(&maze, &player, ray_angle, block_size, max_depth) {
             let distance = distance * (PI / 3.0).cos(); // Correcting fish-eye effect
-            let wall_height = (framebuffer.height as f32 / distance) as usize;
+            let wall_height = (framebuffer.height as f32 / distance * 6.0) as usize; // Increase scale factor to 6.0
             let wall_start = framebuffer.height / 2 - wall_height / 2;
             let wall_end = wall_start + wall_height;
 
@@ -78,8 +83,8 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
 }
 
 fn main() {
-    let window_width = 1100;
-    let window_height = 700;
+    let window_width = 1300;
+    let window_height = 900;
     let framebuffer_width = 1300;
     let framebuffer_height = 900;
     let frame_delay = Duration::from_millis(16);
@@ -87,7 +92,7 @@ fn main() {
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
 
     let mut window = Window::new(
-        "Proyecto 1",
+        "Maze Runner",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -95,13 +100,16 @@ fn main() {
 
     framebuffer.set_background_color(0x333355);
 
-    let player = Player {
+    let mut player = Player {
         pos: Vec2::new(150.0, 150.0),
         a: PI / 3.0,
     };
 
     let mut render_mode = RenderMode::Mode2D;
     let mut last_m_key_state = false;
+    let rotation_speed = 0.1;
+    let movement_speed = 5.0;
+    let block_size = 100;
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let m_key_state = window.is_key_down(Key::M);
@@ -114,6 +122,22 @@ fn main() {
             };
         }
         last_m_key_state = m_key_state;
+
+        // Handle player rotation
+        if window.is_key_down(Key::Left) {
+            player.rotate_left(rotation_speed);
+        }
+        if window.is_key_down(Key::Right) {
+            player.rotate_right(rotation_speed);
+        }
+
+        // Handle player movement
+        if window.is_key_down(Key::Up) {
+            player.move_forward(&load_maze("./maze.txt"), block_size, movement_speed);
+        }
+        if window.is_key_down(Key::Down) {
+            player.move_backward(&load_maze("./maze.txt"), block_size, movement_speed);
+        }
 
         framebuffer.clear();
         
