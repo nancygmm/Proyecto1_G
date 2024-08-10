@@ -70,7 +70,7 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
             let wall_start = framebuffer.height / 2 - wall_height / 2;
             let wall_end = wall_start + wall_height;
 
-            framebuffer.set_current_color(0xFFDDDD);
+            framebuffer.set_current_color(0xFFFFFF);
 
             for y in wall_start..wall_end {
                 framebuffer.point(ray_index, y);
