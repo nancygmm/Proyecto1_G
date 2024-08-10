@@ -95,7 +95,8 @@ fn main() {
         WindowOptions::default(),
     ).unwrap();
 
-    framebuffer.set_background_color(0x333355);
+    framebuffer.set_background_image("./Liso.webp"); // Establece la imagen de fondo
+    framebuffer.clear();
 
     let mut player = Player {
         pos: Vec2::new(150.0, 150.0),
