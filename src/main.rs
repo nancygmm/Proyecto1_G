@@ -22,7 +22,7 @@ fn draw_cell(framebuffer: &mut Framebuffer, xo: usize, yo: usize, block_size: us
         return;
     }
 
-    framebuffer.set_current_color(0xFFDDDD);
+    framebuffer.set_current_color(0x000000);
 
     for x in xo..xo + block_size {
         for y in yo..yo + block_size {
@@ -43,7 +43,7 @@ fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
     }
 
     // Draw player
-    framebuffer.set_current_color(0xFFDDD);
+    framebuffer.set_current_color(0xFFFFFF);
     let player_size = 5;
     for x in player.pos.x as usize - player_size..=player.pos.x as usize + player_size {
         for y in player.pos.y as usize - player_size..=player.pos.y as usize + player_size {
@@ -70,7 +70,7 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
             let wall_start = framebuffer.height / 2 - wall_height / 2;
             let wall_end = wall_start + wall_height;
 
-            framebuffer.set_current_color(0xFFFFFF);
+            framebuffer.set_current_color(0x000000);
 
             for y in wall_start..wall_end {
                 framebuffer.point(ray_index, y);
@@ -89,13 +89,13 @@ fn main() {
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
 
     let mut window = Window::new(
-        "Maze Runner",
+        "Proyecto 1",
         window_width,
         window_height,
         WindowOptions::default(),
     ).unwrap();
 
-    framebuffer.set_background_image("./Liso.webp"); // Establece la imagen de fondo
+    framebuffer.set_background_image("./Liso.webp"); 
     framebuffer.clear();
 
     let mut player = Player {
