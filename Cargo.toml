@@ -3,9 +3,6 @@ name = "Proyecto1_G"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-crate-type = ["staticlib", "cdylib"]
-
 [dependencies]
 nalgebra-glm = "0.18.0"
 minifb = "0.26.0"
