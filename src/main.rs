@@ -3,10 +3,14 @@ mod maze;
 mod player;
 mod caster;
 
+use std::io::BufReader;
 use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::Vec2;
 use std::f32::consts::PI;
 use std::time::Duration;
+use std::fs::File;
+use rodio::{Decoder, OutputStream, Sink};
+use std::thread;
 use crate::framebuffer::Framebuffer;
 use crate::maze::load_maze;
 use crate::player::Player;
@@ -80,6 +84,20 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
 }
 
 fn main() {
+    // Inicia el sistema de audio
+    let audio_thread = thread::spawn(|| {
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let sink = Sink::try_new(&stream_handle).unwrap();
+
+        // Carga el archivo de audio
+        let file = File::open("./Style.wav").unwrap();
+        let source = Decoder::new(BufReader::new(file)).unwrap();
+
+        // Reproduce el archivo de audio
+        sink.append(source);
+        sink.sleep_until_end();
+    });
+
     let window_width = 1100;
     let window_height = 700;
     let framebuffer_width = 1300;
@@ -150,4 +168,7 @@ fn main() {
 
         std::thread::sleep(frame_delay);
     }
+
+    // Espera a que el hilo de audio termine
+    audio_thread.join().unwrap();
 }
