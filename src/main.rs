@@ -139,10 +139,10 @@ fn main() {
         last_m_key_state = m_key_state;
 
         // Handle player rotation with keyboard
-        if window.is_key_down(Key::Left) {
+        if window.is_key_down(Key::Left) || window.is_key_down(Key::A) {
             player.rotate_left(rotation_speed);
         }
-        if window.is_key_down(Key::Right) {
+        if window.is_key_down(Key::Right) || window.is_key_down(Key::D) {
             player.rotate_right(rotation_speed);
         }
 
@@ -154,10 +154,10 @@ fn main() {
         }
 
         // Handle player movement
-        if window.is_key_down(Key::Up) {
+        if window.is_key_down(Key::Up) || window.is_key_down(Key::W) {
             player.move_forward(&load_maze("./maze.txt"), block_size, movement_speed);
         }
-        if window.is_key_down(Key::Down) {
+        if window.is_key_down(Key::Down) || window.is_key_down(Key::S) {
             player.move_backward(&load_maze("./maze.txt"), block_size, movement_speed);
         }
 
