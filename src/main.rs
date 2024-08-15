@@ -39,14 +39,12 @@ fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
     let maze = load_maze("./maze.txt");
     let block_size = 100;
 
-    // Draws maze
     for row in 0..maze.len() {
         for col in 0..maze[row].len() {
             draw_cell(framebuffer, col * block_size, row * block_size, block_size, maze[row][col]);
         }
     }
 
-    // Draw player
     framebuffer.set_current_color(0xFFFFFF);
     let player_size = 5;
     for x in player.pos.x as usize - player_size..=player.pos.x as usize + player_size {
@@ -60,8 +58,7 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
     let maze = load_maze("./maze.txt");
     let block_size = 100;
 
-    // Set the player's field of view and other raycasting parameters
-    let fov = PI / 3.0; // 60 degrees
+    let fov = PI / 3.0; 
     let num_rays = framebuffer.width;
     let max_depth = 1000.0;
 
@@ -127,6 +124,8 @@ fn main() {
     let movement_speed = 5.0;
     let block_size = 100;
 
+    let mut previous_mouse_x = window.get_mouse_pos(minifb::MouseMode::Pass).unwrap_or((0.0, 0.0)).0;
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let m_key_state = window.is_key_down(Key::M);
 
@@ -139,12 +138,19 @@ fn main() {
         }
         last_m_key_state = m_key_state;
 
-        // Handle player rotation
+        // Handle player rotation with keyboard
         if window.is_key_down(Key::Left) {
             player.rotate_left(rotation_speed);
         }
         if window.is_key_down(Key::Right) {
             player.rotate_right(rotation_speed);
+        }
+
+        // Handle player rotation with mouse
+        if let Some((mouse_x, _)) = window.get_mouse_pos(minifb::MouseMode::Pass) {
+            let delta_x = mouse_x - previous_mouse_x;
+            player.a += delta_x * 0.005; // Adjust sensitivity as needed
+            previous_mouse_x = mouse_x;
         }
 
         // Handle player movement
@@ -169,6 +175,5 @@ fn main() {
         std::thread::sleep(frame_delay);
     }
 
-    // Espera a que el hilo de audio termine
     audio_thread.join().unwrap();
 }
