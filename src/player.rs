@@ -1,8 +1,8 @@
-use nalgebra_glm::{Vec2};
+use nalgebra_glm::Vec2;
 
 pub struct Player {
     pub pos: Vec2,
-    pub a: f32, // angulo de vista
+    pub a: f32, // ángulo de vista
 }
 
 impl Player {

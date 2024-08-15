@@ -4,7 +4,7 @@ mod player;
 mod caster;
 
 use std::io::BufReader;
-use minifb::{Window, WindowOptions, Key};
+use minifb::{Window, WindowOptions, Key, MouseButton};
 use nalgebra_glm::Vec2;
 use std::f32::consts::PI;
 use std::time::Duration;
@@ -54,7 +54,7 @@ fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
     }
 }
 
-fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
+fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
     let maze = load_maze("./maze.txt");
     let block_size = 100;
 
@@ -76,8 +76,30 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &Player) {
             for y in wall_start..wall_end {
                 framebuffer.point(ray_index, y);
             }
+
+            // Si el jugador está muy cerca de una pared, impide el movimiento adicional en esa dirección
+            if distance < 5.0 {
+                // Bloquear movimiento hacia adelante o hacia atrás si el jugador está cerca de una pared
+                player.pos.x = player.pos.x; // Esto evita cambios de posición, efectivamente deteniendo el movimiento
+                player.pos.y = player.pos.y;
+            }
         }
     }
+}
+
+fn render_welcome_screen(framebuffer: &mut Framebuffer) {
+    framebuffer.set_background_color(0x000000); // Fondo negro
+    framebuffer.clear();
+
+    // Mensaje de bienvenida
+    framebuffer.set_current_color(0xFFFFFF); // Blanco
+    framebuffer.draw_text(50, 50, "Bienvenido al Juego del Laberinto"); // Asegúrate de implementar `draw_text`
+
+    // Botón "Comenzar"
+    framebuffer.set_current_color(0x00FF00); // Verde
+    framebuffer.draw_text(50, 100, "Comenzar"); // Asegúrate de implementar `draw_text`
+
+    // No es necesario llamar a `update` en este contexto
 }
 
 fn main() {
@@ -102,7 +124,6 @@ fn main() {
     let frame_delay = Duration::from_millis(16);
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
-
     let mut window = Window::new(
         "Proyecto 1",
         window_width,
@@ -110,9 +131,25 @@ fn main() {
         WindowOptions::default(),
     ).unwrap();
 
-    framebuffer.set_background_image("./Liso.webp"); 
+    framebuffer.set_background_image("./Liso.webp");
     framebuffer.clear();
 
+    // Pantalla de bienvenida
+    let mut in_welcome_screen = true;
+    while in_welcome_screen && window.is_open() {
+        render_welcome_screen(&mut framebuffer);
+
+        if window.get_mouse_down(MouseButton::Left) {
+            // Aquí puedes agregar la lógica para verificar si el clic está en el botón "Comenzar"
+            // Para simplicidad, asumimos que se hace clic en cualquier parte de la pantalla
+            in_welcome_screen = false;
+        }
+
+        window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
+        std::thread::sleep(frame_delay);
+    }
+
+    // Configuración inicial del jugador y modo de renderizado
     let mut player = Player {
         pos: Vec2::new(150.0, 150.0),
         a: PI / 3.0,
@@ -162,16 +199,13 @@ fn main() {
         }
 
         framebuffer.clear();
-        
+
         match render_mode {
             RenderMode::Mode2D => render_2d(&mut framebuffer, &player),
-            RenderMode::Mode3D => render_3d(&mut framebuffer, &player),
+            RenderMode::Mode3D => render_3d(&mut framebuffer, &mut player),
         }
 
-        window
-            .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
-            .unwrap();
-
+        window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
         std::thread::sleep(frame_delay);
     }
 
