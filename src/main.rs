@@ -4,7 +4,7 @@ mod player;
 mod caster;
 
 use std::io::BufReader;
-use minifb::{Window, WindowOptions, Key, MouseButton};
+use minifb::{Window, WindowOptions, Key};
 use nalgebra_glm::Vec2;
 use std::f32::consts::PI;
 use std::time::Duration;
@@ -65,9 +65,9 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
     for ray_index in 0..num_rays {
         let ray_angle = player.a - (fov / 2.0) + (ray_index as f32 / num_rays as f32) * fov;
 
-        if let Some((distance, _hit_x, _hit_y)) = cast_ray(&maze, &player, ray_angle, block_size, max_depth) {
-            let distance = distance * (PI / 3.0).cos(); // Correcting fish-eye effect
-            let wall_height = (framebuffer.height as f32 / distance * 6.0) as usize; // Increase scale factor to 6.0
+        if let Some((distance, _hit_x, _hit_y)) = cast_ray(&maze, player, ray_angle, block_size, max_depth) {
+            let distance = distance * (fov / 2.0).cos(); // Corregir el efecto ojo de pez
+            let wall_height = (framebuffer.height as f32 / distance * 6.0) as usize; // Escalar el factor a 6.0
             let wall_start = framebuffer.height / 2 - wall_height / 2;
             let wall_end = wall_start + wall_height;
 
@@ -84,6 +84,38 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
                 player.pos.y = player.pos.y;
             }
         }
+    }
+}
+
+fn render_minimap(
+    framebuffer: &mut Framebuffer,
+    player: &Player,
+    x_offset: usize,
+    y_offset: usize,
+    scale: f32,
+) {
+    let maze = load_maze("./maze.txt");
+    let block_size = (100.0 * scale) as usize;
+
+    for row in 0..maze.len() {
+        for col in 0..maze[row].len() {
+            draw_cell(framebuffer, x_offset + col * block_size, y_offset + row * block_size, block_size, maze[row][col])
+        }
+    }
+
+    framebuffer.set_current_color(0xFFDDD);
+    let player_x = x_offset + (player.pos.x * scale) as usize;
+    let player_y = y_offset + (player.pos.y * scale) as usize;
+    if player_x < framebuffer.width && player_y < framebuffer.height {
+        framebuffer.point(player_x, player_y);
+    }
+
+    let num_rays = 5;
+    for i in 0..num_rays {
+        let current_ray = i as f32 / num_rays as f32;
+        let a = player.a - (player.fov / 2.0) + (player.fov * current_ray);
+
+        cast_ray(&maze, player, a, 100, 1000.0); // Ajusta el valor de max_depth según sea necesario
     }
 }
 
@@ -123,6 +155,7 @@ fn main() {
     let mut player = Player {
         pos: Vec2::new(150.0, 150.0),
         a: PI / 3.0,
+        fov: PI / 3.0, // Ajusta según el campo de visión deseado
     };
 
     let mut render_mode = RenderMode::Mode2D;
@@ -156,7 +189,7 @@ fn main() {
         // Handle player rotation with mouse
         if let Some((mouse_x, _)) = window.get_mouse_pos(minifb::MouseMode::Pass) {
             let delta_x = mouse_x - previous_mouse_x;
-            player.a += delta_x * 0.005; // Adjust sensitivity as needed
+            player.a += delta_x * 0.005; // Ajusta sensibilidad según sea necesario
             previous_mouse_x = mouse_x;
         }
 
@@ -172,7 +205,16 @@ fn main() {
 
         match render_mode {
             RenderMode::Mode2D => render_2d(&mut framebuffer, &player),
-            RenderMode::Mode3D => render_3d(&mut framebuffer, &mut player),
+            RenderMode::Mode3D => {
+                render_3d(&mut framebuffer, &mut player);
+                render_minimap(
+                    &mut framebuffer,
+                    &player,
+                    framebuffer_width - (framebuffer_width as f32 * 0.1) as usize - 10,
+                    10,
+                    0.1
+                );
+            }
         }
 
         window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
