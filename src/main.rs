@@ -11,6 +11,7 @@ use std::time::Duration;
 use std::fs::File;
 use rodio::{Decoder, OutputStream, Sink};
 use std::thread;
+use gilrs::{Gilrs, Event, Button, Axis};
 use crate::framebuffer::Framebuffer;
 use crate::maze::load_maze;
 use crate::player::Player;
@@ -160,6 +161,9 @@ fn main() {
 
     let mut previous_mouse_x = window.get_mouse_pos(minifb::MouseMode::Pass).unwrap_or((0.0, 0.0)).0;
 
+    // Inicializar gilrs
+    let mut gilrs = Gilrs::new().unwrap();
+
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let m_key_state = window.is_key_down(Key::M);
 
@@ -171,6 +175,7 @@ fn main() {
         }
         last_m_key_state = m_key_state;
 
+        // Manejar entradas de teclado
         if window.is_key_down(Key::Left) || window.is_key_down(Key::A) {
             player.rotate_left(rotation_speed);
         }
@@ -189,6 +194,31 @@ fn main() {
         }
         if window.is_key_down(Key::Down) || window.is_key_down(Key::S) {
             player.move_backward(&load_maze("./maze.txt"), block_size, movement_speed);
+        }
+
+        // Manejar entradas del controlador
+        while let Some(Event { id, event, time }) = gilrs.next_event() {
+            match event {
+                gilrs::EventType::AxisChanged(Axis::LeftStickX, value, _) => {
+                    if value < -0.5 {
+                        player.rotate_left(rotation_speed);
+                    } else if value > 0.5 {
+                        player.rotate_right(rotation_speed);
+                    }
+                }
+                gilrs::EventType::AxisChanged(Axis::LeftStickY, value, _) => {
+                    if value < -0.5 {
+                        player.move_backward(&load_maze("./maze.txt"), block_size, movement_speed);
+                    } else if value > 0.5 {
+                        player.move_forward(&load_maze("./maze.txt"), block_size, movement_speed);
+                    }
+                }
+                gilrs::EventType::ButtonPressed(Button::South, _) => {
+                }
+                gilrs::EventType::ButtonPressed(Button::East, _) => {
+                }
+                _ => {}
+            }
         }
 
         framebuffer.clear();
