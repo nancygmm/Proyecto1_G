@@ -22,6 +22,45 @@ enum RenderMode {
     Mode3D,
 }
 
+const NUMBERS: [[u8; 5]; 10] = [
+    [0b01110, 0b10001, 0b10001, 0b10001, 0b01110], 
+    [0b00100, 0b01100, 0b00100, 0b00100, 0b01110], 
+    [0b01110, 0b10001, 0b00110, 0b01000, 0b11111], 
+    [0b01110, 0b10001, 0b00110, 0b10001, 0b01110], 
+    [0b00100, 0b01100, 0b10100, 0b11111, 0b00100], 
+    [0b11111, 0b10000, 0b11110, 0b00001, 0b11110], 
+    [0b01110, 0b10000, 0b11110, 0b10001, 0b01110], 
+    [0b11111, 0b00010, 0b00100, 0b01000, 0b10000], 
+    [0b01110, 0b10001, 0b01110, 0b10001, 0b01110], 
+    [0b01110, 0b10001, 0b01111, 0b00001, 0b01110], 
+];
+
+fn draw_bitmap_number(framebuffer: &mut Framebuffer, x: usize, y: usize, number: u32, scale: usize) {
+    let number_str = number.to_string();
+    let mut offset_x = x;
+
+    for digit in number_str.chars() {
+        if let Some(digit) = digit.to_digit(10) {
+            for row in 0..5 {
+                let row_data = NUMBERS[digit as usize][row];
+                for col in 0..5 {
+                    if row_data & (1 << (4 - col)) != 0 {
+                        // Dibuja cada pixel escalado
+                        let color = 0x00FF00; // Color más claro para los números, verde en este caso
+                        framebuffer.set_current_color(color);
+                        for dx in 0..scale {
+                            for dy in 0..scale {
+                                framebuffer.point(offset_x + col * scale + dx, y + row * scale + dy);
+                            }
+                        }
+                    }
+                }
+            }
+            offset_x += 6 * scale; // Espacio entre números escalado
+        }
+    }
+}
+
 fn draw_cell(framebuffer: &mut Framebuffer, xo: usize, yo: usize, block_size: usize, cell: char) {
     if cell == ' ' {
         return;
@@ -82,13 +121,9 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
             for y in wall_start..wall_end {
                 framebuffer.point(ray_index, y);
             }
-
-            if distance < 5.0 {
-            }
         }
     }
 }
-
 
 fn render_minimap(
     framebuffer: &mut Framebuffer,
@@ -165,8 +200,10 @@ fn main() {
 
     let mut previous_mouse_x = window.get_mouse_pos(minifb::MouseMode::Pass).unwrap_or((0.0, 0.0)).0;
 
-    // Inicializar gilrs
     let mut gilrs = Gilrs::new().unwrap();
+
+    let mut frame_count = 0;
+    let mut last_update = std::time::Instant::now();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let m_key_state = window.is_key_down(Key::M);
@@ -179,7 +216,6 @@ fn main() {
         }
         last_m_key_state = m_key_state;
 
-        // Manejar entradas de teclado
         if window.is_key_down(Key::Left) || window.is_key_down(Key::A) {
             player.rotate_left(rotation_speed);
         }
@@ -200,7 +236,6 @@ fn main() {
             player.move_backward(&load_maze("./maze.txt"), block_size, movement_speed);
         }
 
-        // Manejar entradas del controlador
         while let Some(Event { id, event, time }) = gilrs.next_event() {
             match event {
                 gilrs::EventType::AxisChanged(Axis::LeftStickX, value, _) => {
@@ -239,6 +274,16 @@ fn main() {
                     0.1
                 );
             }
+        }
+
+        frame_count += 1;
+        let now = std::time::Instant::now();
+        let duration = now.duration_since(last_update);
+        if duration >= Duration::from_secs(1) {
+            let fps = frame_count as u32;
+            draw_bitmap_number(&mut framebuffer, 10, 10, fps, 4); 
+            frame_count = 0;
+            last_update = now;
         }
 
         window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
