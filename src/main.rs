@@ -58,7 +58,6 @@ fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
 fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
     let maze = load_maze("./maze.txt");
     let block_size = 100;
-
     let fov = PI / 3.0; 
     let num_rays = framebuffer.width;
     let max_depth = 1000.0;
@@ -68,9 +67,15 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
 
         if let Some((distance, _hit_x, _hit_y)) = cast_ray(&maze, player, ray_angle, block_size, max_depth) {
             let distance = distance * (fov / 2.0).cos(); 
-            let wall_height = (framebuffer.height as f32 / distance * 6.0) as usize; 
-            let wall_start = framebuffer.height / 2 - wall_height / 2;
-            let wall_end = wall_start + wall_height;
+
+            if distance <= 0.0 {
+                continue;
+            }
+
+            let wall_height = (framebuffer.height as f32 / distance * 6.0) as usize;
+
+            let wall_start = (framebuffer.height as isize / 2 - wall_height as isize / 2).max(0) as usize;
+            let wall_end = (wall_start as isize + wall_height as isize).min(framebuffer.height as isize) as usize;
 
             framebuffer.set_current_color(0x000000);
 
@@ -79,12 +84,11 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
             }
 
             if distance < 5.0 {
-                player.pos.x = player.pos.x; 
-                player.pos.y = player.pos.y;
             }
         }
     }
 }
+
 
 fn render_minimap(
     framebuffer: &mut Framebuffer,
