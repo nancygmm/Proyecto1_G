@@ -65,30 +65,4 @@ impl Framebuffer {
             }
         }
     }
-
-    pub fn draw_text(&mut self, x: usize, y: usize, text: &str) {
-        // Implementación básica para dibujar texto. 
-        // Nota: La implementación real debería usar una biblioteca para fuentes.
-        // Este código es solo un ejemplo y puede necesitar ajustes según la biblioteca que uses para el manejo de fuentes.
-
-        // Define una simple fuente de texto en términos de píxeles (esto es solo un ejemplo)
-        let font = vec![
-            0b0110_0000, // 6
-            0b0101_1000, // 5
-            0b0100_0100, // 4
-            0b0101_1000, // 5
-            0b0110_0000, // 6
-        ];
-
-        for (i, ch) in text.chars().enumerate() {
-            let char_x = x + i * 8; // Espaciado de caracteres
-            for (row, bits) in font.iter().enumerate() {
-                for col in 0..8 {
-                    if bits & (1 << (7 - col)) != 0 {
-                        self.point(char_x + col, y + row);
-                    }
-                }
-            }
-        }
-    }
 }

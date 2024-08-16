@@ -87,21 +87,6 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
     }
 }
 
-fn render_welcome_screen(framebuffer: &mut Framebuffer) {
-    framebuffer.set_background_color(0x000000); // Fondo negro
-    framebuffer.clear();
-
-    // Mensaje de bienvenida
-    framebuffer.set_current_color(0xFFFFFF); // Blanco
-    framebuffer.draw_text(50, 50, "Bienvenido al Juego del Laberinto"); // Asegúrate de implementar `draw_text`
-
-    // Botón "Comenzar"
-    framebuffer.set_current_color(0x00FF00); // Verde
-    framebuffer.draw_text(50, 100, "Comenzar"); // Asegúrate de implementar `draw_text`
-
-    // No es necesario llamar a `update` en este contexto
-}
-
 fn main() {
     // Inicia el sistema de audio
     let audio_thread = thread::spawn(|| {
@@ -133,21 +118,6 @@ fn main() {
 
     framebuffer.set_background_image("./Liso.webp");
     framebuffer.clear();
-
-    // Pantalla de bienvenida
-    let mut in_welcome_screen = true;
-    while in_welcome_screen && window.is_open() {
-        render_welcome_screen(&mut framebuffer);
-
-        if window.get_mouse_down(MouseButton::Left) {
-            // Aquí puedes agregar la lógica para verificar si el clic está en el botón "Comenzar"
-            // Para simplicidad, asumimos que se hace clic en cualquier parte de la pantalla
-            in_welcome_screen = false;
-        }
-
-        window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
-        std::thread::sleep(frame_delay);
-    }
 
     // Configuración inicial del jugador y modo de renderizado
     let mut player = Player {
