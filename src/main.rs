@@ -66,7 +66,7 @@ fn draw_cell(framebuffer: &mut Framebuffer, xo: usize, yo: usize, block_size: us
         return;
     }
 
-    framebuffer.set_current_color(0x000000);
+    framebuffer.set_current_color(0x77A345);
 
     for x in xo..xo + block_size {
         for y in yo..yo + block_size {
@@ -116,7 +116,7 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
             let wall_start = (framebuffer.height as isize / 2 - wall_height as isize / 2).max(0) as usize;
             let wall_end = (wall_start as isize + wall_height as isize).min(framebuffer.height as isize) as usize;
 
-            framebuffer.set_current_color(0x000000);
+            framebuffer.set_current_color(0x77A345);
 
             for y in wall_start..wall_end {
                 framebuffer.point(ray_index, y);
@@ -183,8 +183,8 @@ fn main() {
         WindowOptions::default(),
     ).unwrap();
 
-    framebuffer.set_background_color(u32::from_str_radix("412B19", 16).unwrap());
-    framebuffer.set_wall_texture("./Walls.png"); // Configura la textura de las paredes
+    framebuffer.set_background_color(u32::from_str_radix("9B9B9B", 16).unwrap());
+    framebuffer.set_wall_texture("./Walls.png");
 
     framebuffer.clear();
 
