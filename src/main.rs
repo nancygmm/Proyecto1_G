@@ -66,8 +66,8 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
         let ray_angle = player.a - (fov / 2.0) + (ray_index as f32 / num_rays as f32) * fov;
 
         if let Some((distance, _hit_x, _hit_y)) = cast_ray(&maze, player, ray_angle, block_size, max_depth) {
-            let distance = distance * (fov / 2.0).cos(); // Corregir el efecto ojo de pez
-            let wall_height = (framebuffer.height as f32 / distance * 6.0) as usize; // Escalar el factor a 6.0
+            let distance = distance * (fov / 2.0).cos(); 
+            let wall_height = (framebuffer.height as f32 / distance * 6.0) as usize; 
             let wall_start = framebuffer.height / 2 - wall_height / 2;
             let wall_end = wall_start + wall_height;
 
@@ -77,10 +77,8 @@ fn render_3d(framebuffer: &mut Framebuffer, player: &mut Player) {
                 framebuffer.point(ray_index, y);
             }
 
-            // Si el jugador está muy cerca de una pared, impide el movimiento adicional en esa dirección
             if distance < 5.0 {
-                // Bloquear movimiento hacia adelante o hacia atrás si el jugador está cerca de una pared
-                player.pos.x = player.pos.x; // Esto evita cambios de posición, efectivamente deteniendo el movimiento
+                player.pos.x = player.pos.x; 
                 player.pos.y = player.pos.y;
             }
         }
@@ -115,21 +113,18 @@ fn render_minimap(
         let current_ray = i as f32 / num_rays as f32;
         let a = player.a - (player.fov / 2.0) + (player.fov * current_ray);
 
-        cast_ray(&maze, player, a, 100, 1000.0); // Ajusta el valor de max_depth según sea necesario
+        cast_ray(&maze, player, a, 100, 1000.0); 
     }
 }
 
 fn main() {
-    // Inicia el sistema de audio
     let audio_thread = thread::spawn(|| {
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
         let sink = Sink::try_new(&stream_handle).unwrap();
 
-        // Carga el archivo de audio
         let file = File::open("./Style.wav").unwrap();
         let source = Decoder::new(BufReader::new(file)).unwrap();
 
-        // Reproduce el archivo de audio
         sink.append(source);
         sink.sleep_until_end();
     });
@@ -151,11 +146,10 @@ fn main() {
     framebuffer.set_background_image("./Liso.webp");
     framebuffer.clear();
 
-    // Configuración inicial del jugador y modo de renderizado
     let mut player = Player {
         pos: Vec2::new(150.0, 150.0),
         a: PI / 3.0,
-        fov: PI / 3.0, // Ajusta según el campo de visión deseado
+        fov: PI / 3.0, 
     };
 
     let mut render_mode = RenderMode::Mode2D;
@@ -169,7 +163,6 @@ fn main() {
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let m_key_state = window.is_key_down(Key::M);
 
-        // Toggle render mode if M is pressed
         if m_key_state && !last_m_key_state {
             render_mode = match render_mode {
                 RenderMode::Mode2D => RenderMode::Mode3D,
@@ -178,7 +171,6 @@ fn main() {
         }
         last_m_key_state = m_key_state;
 
-        // Handle player rotation with keyboard
         if window.is_key_down(Key::Left) || window.is_key_down(Key::A) {
             player.rotate_left(rotation_speed);
         }
@@ -186,14 +178,12 @@ fn main() {
             player.rotate_right(rotation_speed);
         }
 
-        // Handle player rotation with mouse
         if let Some((mouse_x, _)) = window.get_mouse_pos(minifb::MouseMode::Pass) {
             let delta_x = mouse_x - previous_mouse_x;
-            player.a += delta_x * 0.005; // Ajusta sensibilidad según sea necesario
+            player.a += delta_x * 0.005; 
             previous_mouse_x = mouse_x;
         }
 
-        // Handle player movement
         if window.is_key_down(Key::Up) || window.is_key_down(Key::W) {
             player.move_forward(&load_maze("./maze.txt"), block_size, movement_speed);
         }
