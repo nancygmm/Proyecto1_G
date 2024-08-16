@@ -85,7 +85,7 @@ fn render_2d(framebuffer: &mut Framebuffer, player: &Player) {
         }
     }
 
-    framebuffer.set_current_color(0xFFFFFF);
+    framebuffer.set_current_color(0x000000);
     let player_size = 5;
     for x in player.pos.x as usize - player_size..=player.pos.x as usize + player_size {
         for y in player.pos.y as usize - player_size..=player.pos.y as usize + player_size {
@@ -141,7 +141,7 @@ fn render_minimap(
         }
     }
 
-    framebuffer.set_current_color(0xFFDDD);
+    framebuffer.set_current_color(0x000000);
     let player_x = x_offset + (player.pos.x * scale) as usize;
     let player_y = y_offset + (player.pos.y * scale) as usize;
     if player_x < framebuffer.width && player_y < framebuffer.height {
@@ -183,7 +183,8 @@ fn main() {
         WindowOptions::default(),
     ).unwrap();
 
-    framebuffer.set_background_image("./Liso.webp");
+    framebuffer.set_background_color(u32::from_str_radix("B2FFFF", 16).unwrap());
+
     framebuffer.clear();
 
     let mut player = Player {
