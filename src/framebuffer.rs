@@ -7,6 +7,7 @@ pub struct Framebuffer {
     background_color: u32,
     current_color: u32,
     background_image: Option<RgbaImage>,
+    wall_texture: Option<RgbaImage>,
 }
 
 impl Framebuffer {
@@ -18,6 +19,7 @@ impl Framebuffer {
             background_color: 0x000000,
             current_color: 0xFFFFFF,
             background_image: None,
+            wall_texture: None,
         }
     }
 
@@ -62,6 +64,18 @@ impl Framebuffer {
             }
             Err(e) => {
                 println!("Failed to load image: {}", e);
+            }
+        }
+    }
+
+    pub fn set_wall_texture(&mut self, image_path: &str) {
+        match image::open(image_path) {
+            Ok(img) => {
+                let img = img.to_rgba8();
+                self.wall_texture = Some(img);
+            }
+            Err(e) => {
+                println!("Failed to load wall texture: {}", e);
             }
         }
     }
